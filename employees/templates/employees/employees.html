@@ -1,0 +1,30 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Employees</title>
+    <link rel="stylesheet" href="{% static 'employees/css/style.css' %}">
+</head>
+<body>
+
+    <h1>Employee List</h1>
+
+    <a href="/">Home</a> |
+    <a href="/about/">About</a> |
+    <a href="/contact/">Contact</a> |
+    <a href="/employees/">Employees</a>
+
+    <hr>
+
+    <ul>
+        {% for employee in employees %}
+            <li>
+                ID: {{ employee.id }} |
+                Name: {{ employee.name }} |
+                Department: {{ employee.department }}
+            </li>
+        {% endfor %}
+    </ul>
+
+</body>
+</html>

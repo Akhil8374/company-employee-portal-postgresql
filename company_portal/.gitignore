@@ -1,0 +1,66 @@
+# Company Employee Portal
+
+## Project Description
+
+This is a Django-based Employee Management Portal developed using Django Framework.
+
+## Features
+
+- Home Page
+- About Page
+- Contact Page
+- Employee List
+- Django Templates
+- Static CSS
+- URL Routing
+
+## Technologies Used
+
+- Python
+- Django
+- HTML
+- CSS
+
+## Installation
+
+1. Clone the repository
+
+```bash
+git clone <repository-url>
+```
+
+2. Create a virtual environment
+
+```bash
+python -m venv venv
+```
+
+3. Activate the virtual environment
+
+Windows:
+
+```bash
+venv\Scripts\activate
+```
+
+4. Install dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+5. Run the project
+
+```bash
+python manage.py runserver
+```
+
+6. Open
+
+```
+http://127.0.0.1:8000/
+```
+
+## Author
+
+**Rauthrao Akhil**
