@@ -1,8 +1,48 @@
-__pycache__/
-**/__pycache__/
-*.py[cod]
-*.sqlite3
-db.sqlite3
-.env
-.venv/
-venv/
+# Company Employee Portal
+
+## Project Overview
+
+This project is a Django-based Employee Management System integrated with PostgreSQL.
+
+## Features
+
+- PostgreSQL Integration
+- Employee Management
+- Department Management
+- Django ORM
+- Django Admin Panel
+- Employee Search and Filter
+
+## Technologies Used
+
+- Python
+- Django
+- PostgreSQL
+- psycopg2-binary
+- Git
+- GitHub
+
+## Installation
+
+```bash
+pip install -r requirements.txt
+python manage.py makemigrations
+python manage.py migrate
+python manage.py createsuperuser
+python manage.py runserver
+```
+
+## Project Structure
+
+```
+company_portal/
+├── company_portal/
+├── employees/
+├── manage.py
+├── requirements.txt
+└── README.md
+```
+
+## Author
+
+**Rauthrao Akhil**
