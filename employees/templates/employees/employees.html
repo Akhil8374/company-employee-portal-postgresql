@@ -7,24 +7,205 @@
 </head>
 <body>
 
-    <h1>Employee List</h1>
+<h1>Employee List</h1>
 
-    <a href="/">Home</a> |
-    <a href="/about/">About</a> |
-    <a href="/contact/">Contact</a> |
-    <a href="/employees/">Employees</a>
+<a href="/">Home</a> |
+<a href="/about/">About</a> |
+<a href="/contact/">Contact</a> |
+<a href="/employees/create/">Add Employee</a>
 
-    <hr>
+<hr>
 
-    <ul>
-        {% for employee in employees %}
-            <li>
-                ID: {{ employee.id }} |
-                Name: {{ employee.name }} |
-                Department: {{ employee.department }}
-            </li>
-        {% endfor %}
-    </ul>
+{% if messages %}
+    {% for message in messages %}
+        <p><strong>{{ message }}</strong></p>
+    {% endfor %}
+{% endif %}
+
+<form method="GET">
+
+    <input
+        type="text"
+        name="search"
+        placeholder="Search Employee"
+        value="{{ request.GET.search }}">
+
+    <input
+        type="text"
+        name="department"
+        placeholder="Department"
+        value="{{ request.GET.department }}">
+
+    <select name="status">
+
+        <option value="">All</option>
+
+        <option value="active">Active</option>
+
+        <option value="inactive">Inactive</option>
+
+    </select>
+
+    <button type="submit">
+
+        Search
+
+    </button>
+
+</form>
+
+<br>
+
+<table border="1" cellpadding="10">
+
+<tr>
+
+    <th>Image</th>
+
+    <th>Employee ID</th>
+
+    <th>Name</th>
+
+    <th>Department</th>
+
+    <th>Designation</th>
+
+    <th>Email</th>
+
+    <th>Status</th>
+
+    <th>Actions</th>
+
+</tr>
+
+{% for employee in employees %}
+
+<tr>
+
+<td>
+
+{% if employee.profile_image %}
+
+<img
+src="{{ employee.profile_image.url }}"
+width="80"
+height="80">
+
+{% else %}
+
+No Image
+
+{% endif %}
+
+</td>
+
+<td>{{ employee.employee_id }}</td>
+
+<td>{{ employee.first_name }} {{ employee.last_name }}</td>
+
+<td>{{ employee.department }}</td>
+
+<td>{{ employee.designation }}</td>
+
+<td>{{ employee.email }}</td>
+
+<td>
+
+{% if employee.status %}
+
+Active
+
+{% else %}
+
+Inactive
+
+{% endif %}
+
+</td>
+
+<td>
+
+<a href="/employees/{{ employee.id }}/">
+
+View
+
+</a>
+
+|
+
+<a href="/employees/update/{{ employee.id }}/">
+
+Edit
+
+</a>
+
+|
+
+<a href="/employees/delete/{{ employee.id }}/">
+
+Delete
+
+</a>
+
+</td>
+
+</tr>
+
+{% empty %}
+
+<tr>
+
+<td colspan="8">
+
+No Employees Found
+
+</td>
+
+</tr>
+
+{% endfor %}
+
+</table>
+
+<br>
+
+<div>
+
+{% if employees.has_previous %}
+
+<a href="?page=1">First</a>
+
+<a href="?page={{ employees.previous_page_number }}">
+
+Previous
+
+</a>
+
+{% endif %}
+
+Page {{ employees.number }}
+
+of
+
+{{ employees.paginator.num_pages }}
+
+{% if employees.has_next %}
+
+<a href="?page={{ employees.next_page_number }}">
+
+Next
+
+</a>
+
+<a href="?page={{ employees.paginator.num_pages }}">
+
+Last
+
+</a>
+
+{% endif %}
+
+</div>
 
 </body>
 </html>
