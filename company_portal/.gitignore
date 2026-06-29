@@ -1,64 +1,46 @@
 # Company Employee Portal
 
-## Project Description
+## Project Overview
 
-This is a Django-based Employee Management Portal developed using Django Framework.
+This project is a Django-based Employee Management System integrated with PostgreSQL.
 
 ## Features
 
-- Home Page
-- About Page
-- Contact Page
-- Employee List
-- Django Templates
-- Static CSS
-- URL Routing
+- PostgreSQL Integration
+- Employee Management
+- Department Management
+- Django ORM
+- Django Admin Panel
+- Employee Search and Filter
 
 ## Technologies Used
 
 - Python
 - Django
-- HTML
-- CSS
+- PostgreSQL
+- psycopg2-binary
+- Git
+- GitHub
 
 ## Installation
 
-1. Clone the repository
-
-```bash
-git clone <repository-url>
-```
-
-2. Create a virtual environment
-
-```bash
-python -m venv venv
-```
-
-3. Activate the virtual environment
-
-Windows:
-
-```bash
-venv\Scripts\activate
-```
-
-4. Install dependencies
-
 ```bash
 pip install -r requirements.txt
-```
-
-5. Run the project
-
-```bash
+python manage.py makemigrations
+python manage.py migrate
+python manage.py createsuperuser
 python manage.py runserver
 ```
 
-6. Open
+## Project Structure
 
 ```
-http://127.0.0.1:8000/
+company_portal/
+├── company_portal/
+├── employees/
+├── manage.py
+├── requirements.txt
+└── README.md
 ```
 
 ## Author
