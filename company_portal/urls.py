@@ -11,11 +11,10 @@ urlpatterns = [
     # Employee Web Pages
     path("", include("employees.urls")),
 
-    # Function-Based Views, APIViews, Generic Views, ViewSets
+    # ── API Versioned Routes ──────────────────────────────────
+    # V1: /api/v1/auth/login/, /api/v1/employees/, etc.
+    # V2: /api/v2/employees/ (expanded fields)
     path("api/", include("api.urls")),
-
-    # JWT Authentication APIs
-    path("api/auth/", include("api.auth_urls")),
 ]
 
 if settings.DEBUG:
