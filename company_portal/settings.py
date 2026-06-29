@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
 from pathlib import Path
+from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / "subdir".
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -30,10 +31,12 @@ INSTALLED_APPS = [
     "employees",
     "accounts",
     "api",
+    "audit_logs",
 
     # Third-Party Apps
     "rest_framework",
     "rest_framework_simplejwt",
+    "rest_framework_simplejwt.token_blacklist",
     "django_filters",
     "drf_yasg",
 
@@ -130,17 +133,68 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 AUTH_USER_MODEL = "accounts.User"
 
 
-# Django REST Framework
+# ═══════════════════════════════════════════════════════════════
+# Django REST Framework Configuration
+# ═══════════════════════════════════════════════════════════════
 REST_FRAMEWORK = {
+    # Authentication
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
+
+    # Permissions — require authentication by default
     "DEFAULT_PERMISSION_CLASSES": (
-        "rest_framework.permissions.AllowAny",
+        "rest_framework.permissions.IsAuthenticated",
     ),
+
+    # Filters
     "DEFAULT_FILTER_BACKENDS": (
         "django_filters.rest_framework.DjangoFilterBackend",
         "rest_framework.filters.SearchFilter",
         "rest_framework.filters.OrderingFilter",
     ),
+
+    # Throttling (Module 6)
+    "DEFAULT_THROTTLE_CLASSES": [
+        "api.throttling.StandardUserThrottle",
+    ],
+    "DEFAULT_THROTTLE_RATES": {
+        "user": "100/min",
+        "login": "10/min",
+    },
+
+    # Global Exception Handler (Module 4)
+    "EXCEPTION_HANDLER": "api.exceptions.custom_exception_handler.custom_exception_handler",
 }
+
+
+# ═══════════════════════════════════════════════════════════════
+# Simple JWT Configuration (Module 10 — Security)
+# ═══════════════════════════════════════════════════════════════
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=30),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+    "ROTATE_REFRESH_TOKENS": True,
+    "BLACKLIST_AFTER_ROTATION": True,
+    "AUTH_HEADER_TYPES": ("Bearer",),
+}
+
+
+# ═══════════════════════════════════════════════════════════════
+# Caching Configuration (Module 7)
+# ═══════════════════════════════════════════════════════════════
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        "LOCATION": "company-portal-cache",
+        "TIMEOUT": 300,  # 5 minutes default
+    }
+}
+
+
+# ═══════════════════════════════════════════════════════════════
+# Security Settings (Module 10)
+# ═══════════════════════════════════════════════════════════════
+SECURE_CONTENT_TYPE_NOSNIFF = True
+X_FRAME_OPTIONS = "DENY"
+SECURE_BROWSER_XSS_FILTER = True
