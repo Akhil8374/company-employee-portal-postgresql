@@ -1,55 +1,62 @@
-# Company Employee Portal
+# Company Employee Portal REST API
 
 ## Project Overview
 
-The Company Employee Portal is a Django-based Employee Management System integrated with PostgreSQL. It allows administrators to manage employee and department information through the Django Admin Panel.
+The Company Employee Portal REST API is a backend application built using Django REST Framework (DRF) and PostgreSQL. It provides secure REST APIs for managing employees and departments with JWT Authentication and Role-Based Access Control (RBAC). The project follows a professional Git workflow using feature branches and Pull Requests.
 
 ---
 
 ## Features
 
-- PostgreSQL Database Integration
-- Department Management
-- Employee Management
-- Django ORM Operations
-- Django Admin Panel
-- Employee Search
-- Employee Filter by Department
-- CRUD Operations (Create, Read, Update, Delete)
+* Django REST Framework (DRF)
+* PostgreSQL Database Integration
+* Custom User Model
+* JWT Authentication (Simple JWT)
+* Employee CRUD APIs
+* Function-Based APIs
+* Class-Based APIs (APIView)
+* Generic Views
+* ViewSets & Routers
+* Role-Based Access Control (HR & Employee)
+* Django Admin Panel
+* REST API Testing using Postman
 
 ---
 
 ## Technologies Used
 
-- Python 3.14
-- Django
-- PostgreSQL
-- psycopg2-binary
-- Git
-- GitHub
+* Python 3.14
+* Django
+* Django REST Framework
+* PostgreSQL
+* Simple JWT
+* Postman
+* Git
+* GitHub
 
 ---
 
 ## Project Structure
 
-```
+```text
 company_portal/
 │
-├── company_portal/
-│   ├── settings.py
+├── accounts/
+├── api/
+│   ├── serializers.py
+│   ├── class_views.py
+│   ├── generic_views.py
+│   ├── viewsets.py
+│   ├── auth_urls.py
 │   ├── urls.py
-│   ├── asgi.py
-│   └── wsgi.py
+│   └── views.py
 │
 ├── employees/
-│   ├── migrations/
-│   ├── models.py
-│   ├── admin.py
-│   ├── views.py
-│   ├── urls.py
-│   └── templates/
-│
+├── company_portal/
 ├── screenshots/
+│   ├── jwt-login.png
+│   └── employee-api.png
+│
 ├── manage.py
 ├── requirements.txt
 └── README.md
@@ -72,34 +79,20 @@ cd company_portal
 pip install -r requirements.txt
 ```
 
-### Configure PostgreSQL
-
-Update the PostgreSQL database settings in:
-
-```
-company_portal/settings.py
-```
-
----
-
-## Apply Migrations
+### Apply Migrations
 
 ```bash
 python manage.py makemigrations
 python manage.py migrate
 ```
 
----
-
-## Create Superuser
+### Create Superuser
 
 ```bash
 python manage.py createsuperuser
 ```
 
----
-
-## Run the Project
+### Run the Project
 
 ```bash
 python manage.py runserver
@@ -107,13 +100,11 @@ python manage.py runserver
 
 Open your browser:
 
-Home Page
-
 ```
 http://127.0.0.1:8000/
 ```
 
-Admin Panel
+Django Admin:
 
 ```
 http://127.0.0.1:8000/admin/
@@ -121,60 +112,118 @@ http://127.0.0.1:8000/admin/
 
 ---
 
-## Django ORM Examples
+## API Endpoints
 
-Count Employees
+### Authentication APIs
 
-```python
-Employee.objects.count()
-```
+| Method | Endpoint           |
+| ------ | ------------------ |
+| POST   | /api/auth/login/   |
+| POST   | /api/auth/refresh/ |
 
-Employees with Salary Greater Than 50000
+### Employee APIs (ViewSet)
 
-```python
-Employee.objects.filter(salary__gt=50000)
-```
+| Method | Endpoint                     |
+| ------ | ---------------------------- |
+| GET    | /api/viewset/employees/      |
+| POST   | /api/viewset/employees/      |
+| GET    | /api/viewset/employees/{id}/ |
+| PUT    | /api/viewset/employees/{id}/ |
+| DELETE | /api/viewset/employees/{id}/ |
 
-Employees Ordered by Salary
+### Generic View APIs
 
-```python
-Employee.objects.order_by("-salary")
-```
+| Method | Endpoint                     |
+| ------ | ---------------------------- |
+| GET    | /api/generic/employees/      |
+| POST   | /api/generic/employees/      |
+| GET    | /api/generic/employees/{id}/ |
+| PUT    | /api/generic/employees/{id}/ |
+| DELETE | /api/generic/employees/{id}/ |
 
 ---
 
-## Database Models
+## Authentication
 
-### Department
+JWT Authentication is implemented using **djangorestframework-simplejwt**.
 
-- name
-- description
-- created_at
-- updated_at
+Login API returns:
+
+```json
+{
+    "refresh": "your_refresh_token",
+    "access": "your_access_token"
+}
+```
+
+The access token is used to access protected APIs.
+
+---
+
+## User Roles
+
+### HR
+
+* Create Employees
+* Update Employees
+* Delete Employees
+* View Employees
 
 ### Employee
 
-- employee_id
-- first_name
-- last_name
-- email
-- phone
-- salary
-- joining_date
-- designation
-- department
-- status
-- created_at
-- updated_at
+* View Employee Details
+
+---
+
+## Testing
+
+The following APIs were tested successfully using Postman:
+
+* JWT Login API
+* Employee CRUD APIs
+* Generic View APIs
+* ViewSet APIs
+
+---
+
+## Git Workflow
+
+```bash
+git checkout development
+git pull origin development
+git checkout -b feature/drf-api-development
+```
+
+Commit:
+
+```bash
+git commit -m "feat: implement Django REST Framework APIs"
+```
+
+Push:
+
+```bash
+git push origin feature/drf-api-development
+```
+
+Create a Pull Request from:
+
+* Base: `development`
+* Compare: `feature/drf-api-development`
 
 ---
 
 ## Screenshots
 
-- PostgreSQL Database
-- Django Admin Panel
-- Employee Management
-- Department Management
+### JWT Authentication
+
+![JWT Login](screenshots/jwt-login.png)
+
+---
+
+### Employee API Response
+
+![Employee API](screenshots/employee-api.png)
 
 ---
 
