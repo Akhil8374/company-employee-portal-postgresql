@@ -4,7 +4,7 @@ A Django-based Employee Management System built using **Django**, **PostgreSQL**
 
 ---
 
-## 🚀 Features
+##  Features
 
 * Employee CRUD (Create, Read, Update, Delete)
 * Department Management
@@ -17,7 +17,7 @@ A Django-based Employee Management System built using **Django**, **PostgreSQL**
 
 ---
 
-## 🛠️ Tech Stack
+##  Tech Stack
 
 * Python 3
 * Django
@@ -27,7 +27,7 @@ A Django-based Employee Management System built using **Django**, **PostgreSQL**
 
 ---
 
-## 📂 Project Structure
+##  Project Structure
 
 ```text
 company-employee-portal-postgresql/
@@ -40,7 +40,7 @@ company-employee-portal-postgresql/
 
 ---
 
-## ⚙️ Installation
+## Installation
 
 ### Clone the Repository
 
@@ -106,7 +106,7 @@ Open your browser and visit:
 
 ---
 
-## 📚 Concepts Covered
+## Concepts Covered
 
 * Django Models
 * Django ORM
@@ -119,7 +119,7 @@ Open your browser and visit:
 
 ---
 
-## 🎯 Learning Outcomes
+## Learning Outcomes
 
 * Built a backend application using Django.
 * Integrated PostgreSQL with Django.
@@ -129,7 +129,7 @@ Open your browser and visit:
 
 ---
 
-## 👨‍💻 Author
+##  Author
 
 **Akhil Rauthrao**
 
