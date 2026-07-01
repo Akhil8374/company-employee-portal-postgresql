@@ -1,4 +1,7 @@
 from django.db import models
+from django.core.exceptions import ValidationError
+from django.utils import timezone
+
 from .managers import EmployeeManager
 
 
@@ -65,6 +68,43 @@ class Employee(models.Model):
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
 
+    def clean(self):
+        """
+        Model-level validation.
+        - Salary cannot be negative.
+        - Joining date cannot be in the future.
+        - Employee ID cannot be changed after creation.
+        """
+        super().clean()
+
+        # Salary cannot be negative
+        if self.salary is not None and self.salary < 0:
+            raise ValidationError(
+                {"salary": "Salary cannot be negative."}
+            )
+
+        # Joining date cannot be in the future
+        if self.joining_date and self.joining_date > timezone.now().date():
+            raise ValidationError(
+                {"joining_date": "Joining date cannot be in the future."}
+            )
+
+        # Employee ID cannot be changed after creation
+        if self.pk:
+            try:
+                original = Employee.objects.get(pk=self.pk)
+                if original.employee_id != self.employee_id:
+                    raise ValidationError(
+                        {"employee_id": "Employee ID cannot be changed after creation."}
+                    )
+            except Employee.DoesNotExist:
+                pass
+
+    def save(self, *args, **kwargs):
+        """Override save to run full_clean before saving."""
+        self.full_clean()
+        super().save(*args, **kwargs)
+
 
 class EmployeeProfile(models.Model):
     employee = models.OneToOneField(
@@ -77,6 +117,13 @@ class EmployeeProfile(models.Model):
     emergency_contact = models.CharField(max_length=20, blank=True)
     blood_group = models.CharField(max_length=10, blank=True)
     date_of_birth = models.DateField(null=True, blank=True)
+    bio = models.TextField(blank=True, help_text="Short biography of the employee.")
+    photo = models.ImageField(
+        upload_to="employee_profiles/",
+        blank=True,
+        null=True,
+        help_text="Profile photo.",
+    )
 
     def __str__(self):
         return self.employee.first_name
