@@ -60,6 +60,13 @@ class AuditLog(models.Model):
         null=True,
     )
 
+    request_method = models.CharField(
+        max_length=10,
+        blank=True,
+        null=True,
+        help_text="HTTP method (GET, POST, PUT, DELETE, etc.).",
+    )
+
     class Meta:
         ordering = ["-timestamp"]
         verbose_name = "Audit Log"
@@ -68,3 +75,26 @@ class AuditLog(models.Model):
     def __str__(self):
         username = self.user.username if self.user else "system"
         return f"[{self.timestamp}] {username} - {self.action} {self.module}"
+
+
+class BlockedIP(models.Model):
+    """
+    Stores IP addresses that are blocked from accessing the system.
+    Used by IPRestrictionMiddleware.
+    """
+
+    ip_address = models.GenericIPAddressField(unique=True)
+    reason = models.TextField(
+        blank=True,
+        help_text="Reason for blocking this IP.",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "Blocked IP"
+        verbose_name_plural = "Blocked IPs"
+
+    def __str__(self):
+        return f"{self.ip_address} — {self.reason[:50]}"
+

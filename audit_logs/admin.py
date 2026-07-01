@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import AuditLog
+from .models import AuditLog, BlockedIP
 
 
 @admin.register(AuditLog)
@@ -13,12 +13,14 @@ class AuditLogAdmin(admin.ModelAdmin):
         "action",
         "module",
         "object_id",
+        "request_method",
         "ip_address",
     )
 
     list_filter = (
         "action",
         "module",
+        "request_method",
         "timestamp",
     )
 
@@ -36,6 +38,7 @@ class AuditLogAdmin(admin.ModelAdmin):
         "details",
         "timestamp",
         "ip_address",
+        "request_method",
     )
 
     ordering = ("-timestamp",)
@@ -48,3 +51,23 @@ class AuditLogAdmin(admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return False
+
+
+@admin.register(BlockedIP)
+class BlockedIPAdmin(admin.ModelAdmin):
+    """Admin for managing blocked IPs."""
+
+    list_display = (
+        "ip_address",
+        "reason",
+        "created_at",
+    )
+
+    search_fields = (
+        "ip_address",
+        "reason",
+    )
+
+    list_filter = (
+        "created_at",
+    )

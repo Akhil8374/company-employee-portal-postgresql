@@ -1,7 +1,7 @@
 from .models import AuditLog
 
 
-def create_audit_log(user=None, action="", module="", object_id=None, details=None, ip_address=None):
+def create_audit_log(user=None, action="", module="", object_id=None, details=None, ip_address=None, request_method=None):
     """
     Reusable utility to create an audit log entry.
 
@@ -12,6 +12,7 @@ def create_audit_log(user=None, action="", module="", object_id=None, details=No
         object_id: Primary key of the affected object (as string).
         details: Dict of additional details (e.g., changed fields).
         ip_address: IP address of the request.
+        request_method: HTTP method of the request (GET, POST, etc.).
     """
     return AuditLog.objects.create(
         user=user,
@@ -20,6 +21,7 @@ def create_audit_log(user=None, action="", module="", object_id=None, details=No
         object_id=str(object_id) if object_id else None,
         details=details or {},
         ip_address=ip_address,
+        request_method=request_method,
     )
 
 
