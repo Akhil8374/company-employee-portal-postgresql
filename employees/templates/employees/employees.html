@@ -2,7 +2,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Employees</title>
+    <title>Employee List</title>
     <link rel="stylesheet" href="{% static 'employees/css/style.css' %}">
 </head>
 <body>
@@ -37,133 +37,105 @@
         value="{{ request.GET.department }}">
 
     <select name="status">
-
         <option value="">All</option>
 
-        <option value="active">Active</option>
+        <option value="active"
+            {% if request.GET.status == "active" %}
+                selected
+            {% endif %}
+        >
+            Active
+        </option>
 
-        <option value="inactive">Inactive</option>
+        <option value="inactive"
+            {% if request.GET.status == "inactive" %}
+                selected
+            {% endif %}
+        >
+            Inactive
+        </option>
 
     </select>
 
-    <button type="submit">
-
-        Search
-
-    </button>
+    <button type="submit">Search</button>
 
 </form>
 
 <br>
 
-<table border="1" cellpadding="10">
+<table border="1" cellpadding="8">
 
-<tr>
+    <tr>
+        <th>Image</th>
+        <th>Employee ID</th>
+        <th>Name</th>
+        <th>Department</th>
+        <th>Designation</th>
+        <th>Email</th>
+        <th>Status</th>
+        <th>Actions</th>
+    </tr>
 
-    <th>Image</th>
+    {% for employee in employees %}
 
-    <th>Employee ID</th>
+    <tr>
 
-    <th>Name</th>
+        <td>
 
-    <th>Department</th>
+            {% if employee.profile_image %}
+                <img src="{{ employee.profile_image.url }}" width="80">
+            {% else %}
+                No Image
+            {% endif %}
 
-    <th>Designation</th>
+        </td>
 
-    <th>Email</th>
+        <td>{{ employee.employee_id }}</td>
 
-    <th>Status</th>
+        <td>
+            {{ employee.first_name }}
+            {{ employee.last_name }}
+        </td>
 
-    <th>Actions</th>
+        <td>{{ employee.department.name }}</td>
 
-</tr>
+        <td>{{ employee.designation }}</td>
 
-{% for employee in employees %}
+        <td>{{ employee.email }}</td>
 
-<tr>
+        <td>
 
-<td>
+            {% if employee.status %}
+                Active
+            {% else %}
+                Inactive
+            {% endif %}
 
-{% if employee.profile_image %}
+        </td>
 
-<img
-src="{{ employee.profile_image.url }}"
-width="80"
-height="80">
+        <td>
 
-{% else %}
+            <a href="{% url 'employee_detail' employee.pk %}">View</a> |
 
-No Image
+            <a href="{% url 'update_employee' employee.pk %}">Edit</a> |
 
-{% endif %}
+            <a href="{% url 'delete_employee' employee.pk %}">Delete</a>
 
-</td>
+        </td>
 
-<td>{{ employee.employee_id }}</td>
+    </tr>
 
-<td>{{ employee.first_name }} {{ employee.last_name }}</td>
+    {% empty %}
 
-<td>{{ employee.department }}</td>
+    <tr>
 
-<td>{{ employee.designation }}</td>
+        <td colspan="8">
+            No Employees Found
+        </td>
 
-<td>{{ employee.email }}</td>
+    </tr>
 
-<td>
-
-{% if employee.status %}
-
-Active
-
-{% else %}
-
-Inactive
-
-{% endif %}
-
-</td>
-
-<td>
-
-<a href="/employees/{{ employee.id }}/">
-
-View
-
-</a>
-
-|
-
-<a href="/employees/update/{{ employee.id }}/">
-
-Edit
-
-</a>
-
-|
-
-<a href="/employees/delete/{{ employee.id }}/">
-
-Delete
-
-</a>
-
-</td>
-
-</tr>
-
-{% empty %}
-
-<tr>
-
-<td colspan="8">
-
-No Employees Found
-
-</td>
-
-</tr>
-
-{% endfor %}
+    {% endfor %}
 
 </table>
 
@@ -171,36 +143,40 @@ No Employees Found
 
 <div>
 
-{% if employees.has_previous %}
+{% if page_obj.has_previous %}
 
-<a href="?page=1">First</a>
+<a href="?page=1
+&search={{ request.GET.search }}
+&department={{ request.GET.department }}
+&status={{ request.GET.status }}">
+First
+</a>
 
-<a href="?page={{ employees.previous_page_number }}">
-
+<a href="?page={{ page_obj.previous_page_number }}
+&search={{ request.GET.search }}
+&department={{ request.GET.department }}
+&status={{ request.GET.status }}">
 Previous
-
 </a>
 
 {% endif %}
 
-Page {{ employees.number }}
+Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
 
-of
+{% if page_obj.has_next %}
 
-{{ employees.paginator.num_pages }}
-
-{% if employees.has_next %}
-
-<a href="?page={{ employees.next_page_number }}">
-
+<a href="?page={{ page_obj.next_page_number }}
+&search={{ request.GET.search }}
+&department={{ request.GET.department }}
+&status={{ request.GET.status }}">
 Next
-
 </a>
 
-<a href="?page={{ employees.paginator.num_pages }}">
-
+<a href="?page={{ page_obj.paginator.num_pages }}
+&search={{ request.GET.search }}
+&department={{ request.GET.department }}
+&status={{ request.GET.status }}">
 Last
-
 </a>
 
 {% endif %}

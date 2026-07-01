@@ -1,0 +1,14 @@
+==================================================
+EMPLOYEE SUMMARY REPORT
+Generated: 2026-07-01 14:09:23
+==================================================
+
+Total Employees   : 2
+Active Employees  : 2
+Inactive Employees: 0
+
+--------------------------------------------------
+Employee ID     Name                      Status    
+--------------------------------------------------
+EMP001          Akhil Rauthrao             Active    
+EMP999          test user                 Active    

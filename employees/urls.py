@@ -3,8 +3,18 @@ from . import views
 
 urlpatterns = [
     path("", views.home, name="home"),
-    path("about/", views.about, name="about"),
-    path("contact/", views.contact, name="contact"),
+
+    path(
+        "about/",
+        views.about,
+        name="about",
+    ),
+
+    path(
+        "contact/",
+        views.contact,
+        name="contact",
+    ),
 
     path(
         "employees/",
@@ -34,5 +44,14 @@ urlpatterns = [
         "employees/delete/<int:pk>/",
         views.EmployeeDeleteView.as_view(),
         name="delete_employee",
+    ),
+
+    # ==========================
+    # Analytics Dashboard
+    # ==========================
+    path(
+        "analytics/",
+        views.analytics_dashboard,
+        name="analytics_dashboard",
     ),
 ]

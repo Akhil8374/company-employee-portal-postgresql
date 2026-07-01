@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>HR Analytics Dashboard</title>
+
+    <style>
+        body{
+            font-family: Arial;
+            margin:40px;
+        }
+
+        table{
+            border-collapse: collapse;
+            width:80%;
+            margin-bottom:30px;
+        }
+
+        th,td{
+            border:1px solid black;
+            padding:10px;
+            text-align:left;
+        }
+
+        th{
+            background:#f2f2f2;
+        }
+
+        h1{
+            color:#0a58ca;
+        }
+    </style>
+
+</head>
+
+<body>
+
+<h1>HR Analytics Dashboard</h1>
+
+<hr>
+
+<h2>Top 10 Highest Paid Employees</h2>
+
+<table>
+
+<tr>
+<th>Name</th>
+<th>Salary</th>
+</tr>
+
+{% for employee in top_employees %}
+
+<tr>
+<td>{{ employee.first_name }} {{ employee.last_name }}</td>
+<td>{{ employee.salary }}</td>
+</tr>
+
+{% endfor %}
+
+</table>
+
+<hr>
+
+<h2>Department Report</h2>
+
+<table>
+
+<tr>
+
+<th>Department</th>
+<th>Employee Count</th>
+<th>Average Salary</th>
+<th>Highest Salary</th>
+<th>Lowest Salary</th>
+
+</tr>
+
+{% for department in department_report %}
+
+<tr>
+
+<td>{{ department.department__name }}</td>
+
+<td>{{ department.employee_count }}</td>
+
+<td>{{ department.average_salary }}</td>
+
+<td>{{ department.highest_salary }}</td>
+
+<td>{{ department.lowest_salary }}</td>
+
+</tr>
+
+{% endfor %}
+
+</table>
+
+<hr>
+
+<h2>Salary Statistics</h2>
+
+<ul>
+
+<li>Total Salary :
+{{ salary_statistics.total_salary }}</li>
+
+<li>Average Salary :
+{{ salary_statistics.average_salary|floatformat:2 }}
+
+<li>Highest Salary :
+{{ salary_statistics.highest_salary }}</li>
+
+<li>Lowest Salary :
+{{ salary_statistics.lowest_salary }}</li>
+
+</ul>
+
+<hr>
+
+<h2>Employees Joined This Month</h2>
+
+<ul>
+
+{% for employee in joined_this_month %}
+
+<li>
+
+{{ employee.first_name }}
+{{ employee.last_name }}
+
+</li>
+
+{% empty %}
+
+<li>No Employees Joined This Month</li>
+
+{% endfor %}
+
+</ul>
+
+</body>
+
+</html>
