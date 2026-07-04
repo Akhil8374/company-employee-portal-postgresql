@@ -29,8 +29,8 @@ class Employee(models.Model):
     db_index=True,
 )
     
-    first_name = models.CharField(max_length=100)
-    last_name = models.CharField(max_length=100)
+    first_name = models.CharField(max_length=100, db_index=True)
+    last_name = models.CharField(max_length=100, db_index=True)
     email = models.EmailField(
     unique=True,
     db_index=True,
@@ -164,3 +164,37 @@ class Payroll(models.Model):
 
     def __str__(self):
         return f"{self.employee} - {self.amount}"
+
+
+class Attendance(models.Model):
+    """
+    Model representing employee daily attendance.
+    """
+    STATUS_CHOICES = [
+        ("PRESENT", "Present"),
+        ("ABSENT", "Absent"),
+        ("LEAVE", "Leave"),
+        ("HALF_DAY", "Half Day"),
+    ]
+
+    employee = models.ForeignKey(
+        Employee,
+        on_delete=models.CASCADE,
+        related_name="attendance_records",
+    )
+    date = models.DateField(db_index=True)
+    status = models.CharField(
+        max_length=10,
+        choices=STATUS_CHOICES,
+        default="PRESENT",
+        db_index=True,
+    )
+    check_in = models.TimeField(null=True, blank=True)
+    check_out = models.TimeField(null=True, blank=True)
+
+    class Meta:
+        unique_together = ("employee", "date")
+        ordering = ["-date"]
+
+    def __str__(self):
+        return f"{self.employee} - {self.date} - {self.status}"

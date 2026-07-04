@@ -7,6 +7,7 @@ from .models import (
     Skill,
     EmployeeProfile,
     Payroll,
+    Attendance,
 )
 
 
@@ -138,4 +139,25 @@ class EmployeeAdmin(admin.ModelAdmin):
                 emp.joining_date
             ])
 
-        return response
+        return response
+
+
+@admin.register(Attendance)
+class AttendanceAdmin(admin.ModelAdmin):
+    list_display = (
+        "employee",
+        "date",
+        "status",
+        "check_in",
+        "check_out",
+    )
+    search_fields = (
+        "employee__first_name",
+        "employee__last_name",
+        "employee__employee_id",
+    )
+    list_filter = (
+        "status",
+        "date",
+    )
+    date_hierarchy = "date"
