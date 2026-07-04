@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Attendance Records</title>
+
+    <style>
+        body {
+            font-family: Arial;
+            margin: 40px;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 95%;
+            margin-bottom: 30px;
+        }
+
+        th, td {
+            border: 1px solid black;
+            padding: 10px;
+            text-align: left;
+        }
+
+        th {
+            background: #f2f2f2;
+        }
+
+        h1 {
+            color: #0a58ca;
+        }
+
+        form {
+            margin-bottom: 20px;
+        }
+
+        form input, form select, form button {
+            padding: 6px;
+            margin-right: 10px;
+        }
+
+        .pagination {
+            margin-top: 20px;
+        }
+
+        .pagination a {
+            margin: 0 5px;
+            text-decoration: none;
+            color: #0a58ca;
+        }
+
+        .current-page {
+            margin: 0 10px;
+            font-weight: bold;
+        }
+
+        nav a {
+            margin-right: 10px;
+        }
+    </style>
+
+</head>
+<body>
+
+<h1>Attendance Records</h1>
+
+<nav>
+    <a href="/">Home</a> |
+    <a href="/employees/">Employees</a> |
+    <a href="/departments/">Departments</a> |
+    <a href="/analytics/">Dashboard</a> |
+    <a href="/reports/">Reports</a>
+</nav>
+
+<hr>
+
+<form method="GET">
+    <input
+        type="text"
+        name="employee_name"
+        placeholder="Employee Name"
+        value="{{ request.GET.employee_name }}">
+
+    <select name="status">
+        <option value="">All Status</option>
+        <option value="PRESENT"
+            {% if request.GET.status == "PRESENT" %}selected{% endif %}>
+            Present
+        </option>
+        <option value="ABSENT"
+            {% if request.GET.status == "ABSENT" %}selected{% endif %}>
+            Absent
+        </option>
+        <option value="LEAVE"
+            {% if request.GET.status == "LEAVE" %}selected{% endif %}>
+            Leave
+        </option>
+        <option value="HALF_DAY"
+            {% if request.GET.status == "HALF_DAY" %}selected{% endif %}>
+            Half Day
+        </option>
+    </select>
+
+    <input
+        type="date"
+        name="date"
+        value="{{ request.GET.date }}">
+
+    <button type="submit">Search</button>
+</form>
+
+<table>
+    <tr>
+        <th>Employee ID</th>
+        <th>Employee Name</th>
+        <th>Department</th>
+        <th>Date</th>
+        <th>Status</th>
+        <th>Check In</th>
+        <th>Check Out</th>
+    </tr>
+
+    {% for record in attendance_records %}
+    <tr>
+        <td>{{ record.employee.employee_id }}</td>
+        <td>{{ record.employee.first_name }} {{ record.employee.last_name }}</td>
+        <td>{{ record.employee.department.name }}</td>
+        <td>{{ record.date }}</td>
+        <td>{{ record.get_status_display }}</td>
+        <td>{{ record.check_in|default:"—" }}</td>
+        <td>{{ record.check_out|default:"—" }}</td>
+    </tr>
+
+    {% empty %}
+    <tr>
+        <td colspan="7">No Attendance Records Found</td>
+    </tr>
+    {% endfor %}
+</table>
+
+{% include "employees/_pagination.html" %}
+
+</body>
+</html>

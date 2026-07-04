@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>HR Reports</title>
+
+    <style>
+        body {
+            font-family: Arial;
+            margin: 40px;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 80%;
+            margin-bottom: 30px;
+        }
+
+        th, td {
+            border: 1px solid black;
+            padding: 10px;
+            text-align: left;
+        }
+
+        th {
+            background: #f2f2f2;
+        }
+
+        h1 {
+            color: #0a58ca;
+        }
+
+        h2 {
+            color: #333;
+            margin-top: 30px;
+        }
+
+        .stat-card {
+            display: inline-block;
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px 25px;
+            margin: 10px;
+            text-align: center;
+        }
+
+        .stat-card h3 {
+            margin: 0;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .stat-card p {
+            margin: 5px 0 0;
+            font-size: 24px;
+            font-weight: bold;
+            color: #0a58ca;
+        }
+
+        nav a {
+            margin-right: 10px;
+        }
+    </style>
+
+</head>
+<body>
+
+<h1>HR Reports</h1>
+
+<nav>
+    <a href="/">Home</a> |
+    <a href="/employees/">Employees</a> |
+    <a href="/departments/">Departments</a> |
+    <a href="/attendance/">Attendance</a> |
+    <a href="/analytics/">Dashboard</a>
+</nav>
+
+<hr>
+
+<!-- Employee Statistics -->
+<h2>Employee Statistics</h2>
+
+<div class="stat-card">
+    <h3>Total Employees</h3>
+    <p>{{ employee_stats.total_employees|default:"0" }}</p>
+</div>
+
+<div class="stat-card">
+    <h3>Total Salary</h3>
+    <p>{{ employee_stats.total_salary|floatformat:2|default:"0.00" }}</p>
+</div>
+
+<div class="stat-card">
+    <h3>Average Salary</h3>
+    <p>{{ employee_stats.average_salary|floatformat:2|default:"0.00" }}</p>
+</div>
+
+<div class="stat-card">
+    <h3>Highest Salary</h3>
+    <p>{{ employee_stats.highest_salary|floatformat:2|default:"0.00" }}</p>
+</div>
+
+<div class="stat-card">
+    <h3>Lowest Salary</h3>
+    <p>{{ employee_stats.lowest_salary|floatformat:2|default:"0.00" }}</p>
+</div>
+
+<hr>
+
+<!-- Department Statistics -->
+<h2>Department Statistics</h2>
+
+<table>
+    <tr>
+        <th>Department</th>
+        <th>Employee Count</th>
+        <th>Average Salary</th>
+        <th>Highest Salary</th>
+        <th>Lowest Salary</th>
+    </tr>
+
+    {% for dept in department_stats %}
+    <tr>
+        <td>{{ dept.name }}</td>
+        <td>{{ dept.employee_count }}</td>
+        <td>{{ dept.average_salary|floatformat:2|default:"—" }}</td>
+        <td>{{ dept.highest_salary|floatformat:2|default:"—" }}</td>
+        <td>{{ dept.lowest_salary|floatformat:2|default:"—" }}</td>
+    </tr>
+    {% empty %}
+    <tr>
+        <td colspan="5">No Department Data</td>
+    </tr>
+    {% endfor %}
+</table>
+
+<hr>
+
+<!-- Payroll Summary -->
+<h2>Payroll Summary</h2>
+
+<div class="stat-card">
+    <h3>Total Payroll</h3>
+    <p>{{ payroll_summary.total_payroll|floatformat:2|default:"0.00" }}</p>
+</div>
+
+<div class="stat-card">
+    <h3>Average Payroll</h3>
+    <p>{{ payroll_summary.average_payroll|floatformat:2|default:"0.00" }}</p>
+</div>
+
+<div class="stat-card">
+    <h3>Highest Payroll</h3>
+    <p>{{ payroll_summary.highest_payroll|floatformat:2|default:"0.00" }}</p>
+</div>
+
+<div class="stat-card">
+    <h3>Lowest Payroll</h3>
+    <p>{{ payroll_summary.lowest_payroll|floatformat:2|default:"0.00" }}</p>
+</div>
+
+<div class="stat-card">
+    <h3>Payroll Count</h3>
+    <p>{{ payroll_summary.payroll_count|default:"0" }}</p>
+</div>
+
+</body>
+</html>

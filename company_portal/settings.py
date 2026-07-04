@@ -50,7 +50,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    "company_portal.middleware.performance.PerformanceLoggingMiddleware",
+    "middleware.performance.PerformanceLoggingMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -187,7 +187,7 @@ SIMPLE_JWT = {
 
 
 # ═══════════════════════════════════════════════════════════════
-# Caching Configuration (Module 7)
+# Caching Configuration (Performance Module)
 # ═══════════════════════════════════════════════════════════════
 CACHES = {
     "default": {
@@ -208,7 +208,7 @@ SECURE_BROWSER_XSS_FILTER = True
 import os
 
 # ═══════════════════════════════════════════════════════════════
-# Logging Configuration (Day 14)
+# Logging Configuration (Merged — application + performance)
 # ═══════════════════════════════════════════════════════════════
 LOG_DIR = BASE_DIR / "logs"
 os.makedirs(LOG_DIR, exist_ok=True)
@@ -224,6 +224,10 @@ LOGGING = {
         },
         "simple": {
             "format": "{levelname} {message}",
+            "style": "{",
+        },
+        "performance": {
+            "format": "[{asctime}] {levelname} — {message}",
             "style": "{",
         },
     },
@@ -257,6 +261,12 @@ LOGGING = {
             "filename": LOG_DIR / "request.log",
             "formatter": "verbose",
         },
+        "performance_file": {
+            "level": "INFO",
+            "class": "logging.FileHandler",
+            "filename": LOG_DIR / "performance.log",
+            "formatter": "performance",
+        },
     },
 
     "loggers": {
@@ -275,6 +285,11 @@ LOGGING = {
             "level": "INFO",
             "propagate": False,
         },
+        "performance": {
+            "handlers": ["console", "performance_file"],
+            "level": "INFO",
+            "propagate": False,
+        },
         "django": {
             "handlers": ["console", "error_file"],
             "level": "WARNING",
@@ -282,10 +297,13 @@ LOGGING = {
         },
     },
 }
+
+
 # ==========================================================
 # Session Configuration (Performance Module)
 # ==========================================================
 
+SESSION_ENGINE = "django.contrib.sessions.backends.db"
 SESSION_COOKIE_AGE = 1800          # 30 minutes
 SESSION_SAVE_EVERY_REQUEST = True
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
@@ -293,21 +311,3 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SECURE = False      # Change to True in production (HTTPS)
 SESSION_COOKIE_SAMESITE = "Lax"
-LOGGING = {
-    "version": 1,
-    "disable_existing_loggers": False,
-    "handlers": {
-        "performance_file": {
-            "level": "WARNING",
-            "class": "logging.FileHandler",
-            "filename": "logs/performance.log",
-        },
-    },
-    "loggers": {
-        "performance": {
-            "handlers": ["performance_file"],
-            "level": "WARNING",
-            "propagate": False,
-        },
-    },
-}

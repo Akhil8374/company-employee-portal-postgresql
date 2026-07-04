@@ -33,11 +33,13 @@ class AuditLog(models.Model):
     action = models.CharField(
         max_length=20,
         choices=ACTION_CHOICES,
+        db_index=True,
     )
 
     module = models.CharField(
         max_length=50,
         choices=MODULE_CHOICES,
+        db_index=True,
     )
 
     object_id = models.CharField(
@@ -53,7 +55,7 @@ class AuditLog(models.Model):
         help_text="Additional details about the action (e.g., changed fields).",
     )
 
-    timestamp = models.DateTimeField(auto_now_add=True)
+    timestamp = models.DateTimeField(auto_now_add=True, db_index=True)
 
     ip_address = models.GenericIPAddressField(
         blank=True,

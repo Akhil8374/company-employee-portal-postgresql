@@ -16,6 +16,18 @@ urlpatterns = [
         name="contact",
     ),
 
+    # ==========================
+    # Session Management
+    # ==========================
+    path(
+        "session/clear/",
+        views.clear_session,
+        name="clear_session",
+    ),
+
+    # ==========================
+    # Employee CRUD
+    # ==========================
     path(
         "employees/",
         views.EmployeeListView.as_view(),
@@ -53,5 +65,32 @@ urlpatterns = [
         "analytics/",
         views.analytics_dashboard,
         name="analytics_dashboard",
+    ),
+
+    # ==========================
+    # Department List
+    # ==========================
+    path(
+        "departments/",
+        views.DepartmentListView.as_view(),
+        name="departments",
+    ),
+
+    # ==========================
+    # Attendance List
+    # ==========================
+    path(
+        "attendance/",
+        views.AttendanceListView.as_view(),
+        name="attendance",
+    ),
+
+    # ==========================
+    # HR Reports
+    # ==========================
+    path(
+        "reports/",
+        views.hr_reports,
+        name="hr_reports",
     ),
 ]

@@ -1,3 +1,4 @@
+from django.core.cache import cache
 from django.db.models import (
     Count,
     Avg,
@@ -13,17 +14,27 @@ class DashboardService:
     """
     Service class for Analytics Dashboard queries.
     Optimizes queries to run in maximum 5 database operations.
+    Results are cached for 2 minutes (120 seconds).
     """
+
+    CACHE_KEY = "dashboard_data"
+    CACHE_TIMEOUT = 120  # 2 minutes
 
     @staticmethod
     def get_dashboard_data():
+        """
+        Return all dashboard KPIs. Uses low-level cache to avoid
+        hitting the database on every request.
+        """
+        data = cache.get(DashboardService.CACHE_KEY)
+        if data is not None:
+            return data
+
         today = timezone.now().date()
         current_year = timezone.now().year
         current_month = timezone.now().month
 
         # Query 1: Aggregate stats on Employee (total, active, new joiners, average salary)
-        # We select_related to make sure no N+1, but this is a pure aggregate query, so no join is needed except for filters if we join departments.
-        # But here we aggregate directly on Employee, which runs a single SQL SELECT query!
         employee_stats = Employee.objects.aggregate(
             total_employees=Count("id"),
             active_employees=Count("id", filter=Q(status=True)),
@@ -41,10 +52,13 @@ class DashboardService:
         ).count()
 
         # Query 4: Top 10 highest paid employees
-        top_employees = Employee.objects.select_related("department").order_by("-salary")[:10]
+        top_employees = list(
+            Employee.objects
+            .select_related("department")
+            .order_by("-salary")[:10]
+        )
 
         # Query 5: Department Report with statistics
-        # We use annotate on Department to aggregate salary details in a single query!
         department_report = list(
             Department.objects.annotate(
                 employee_count=Count("employee_set"),
@@ -54,7 +68,7 @@ class DashboardService:
             ).order_by("name")
         )
 
-        return {
+        data = {
             "total_employees": employee_stats["total_employees"] or 0,
             "active_employees": employee_stats["active_employees"] or 0,
             "new_joiners": employee_stats["new_joiners"] or 0,
@@ -65,3 +79,11 @@ class DashboardService:
             "top_employees": top_employees,
             "department_report": department_report,
         }
+
+        cache.set(DashboardService.CACHE_KEY, data, timeout=DashboardService.CACHE_TIMEOUT)
+        return data
+
+    @staticmethod
+    def invalidate_dashboard_cache():
+        """Clear the dashboard cache. Call after employee/attendance changes."""
+        cache.delete(DashboardService.CACHE_KEY)
