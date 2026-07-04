@@ -3,7 +3,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
-
+from django.core.paginator import Paginator
 from api.services import EmployeeService
 from api.serializers import EmployeeSerializer, EmployeeListSerializer
 from api.responses import SuccessResponse
@@ -22,17 +22,55 @@ class EmployeeListCreateView(APIView):
         super().__init__(**kwargs)
         self.service = EmployeeService()
 
-    @method_decorator(cache_page(60 * 5))
+    @method_decorator(cache_page(60 * 2))
     def get(self, request):
-        employees = self.service.list_employees()
-        serializer = EmployeeListSerializer(employees, many=True)
+
+        name = request.GET.get("name")
+        employee_id = request.GET.get("employee_id")
+        department = request.GET.get("department")
+        email = request.GET.get("email")
+        status = request.GET.get("status")
+
+        if any([name, employee_id, department, email, status]):
+            employees = self.service.search_employees(
+                name=name,
+                employee_id=employee_id,
+                department=department,
+                email=email,
+                status=status,
+            )
+        else:
+            employees = self.service.list_employees()
+
+        paginator = Paginator(employees, 20)
+
+        page_number = request.GET.get("page", 1)
+
+        page_obj = paginator.get_page(page_number)
+
+        serializer = EmployeeListSerializer(
+            page_obj.object_list,
+            many=True,
+        )
 
         return SuccessResponse(
-            data=serializer.data,
+            data={
+                "employees": serializer.data,
+                "pagination": {
+                    "current_page": page_obj.number,
+                    "total_pages": paginator.num_pages,
+                    "total_records": paginator.count,
+                    "has_next": page_obj.has_next(),
+                    "has_previous": page_obj.has_previous(),
+                    "next_page": page_obj.next_page_number() if page_obj.has_next() else None,
+                    "previous_page": page_obj.previous_page_number() if page_obj.has_previous() else None,
+                },
+            },
             message="Employees retrieved successfully",
         )
 
     def post(self, request):
+
         serializer = EmployeeSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
@@ -52,7 +90,6 @@ class EmployeeListCreateView(APIView):
             message="Employee created successfully",
             status_code=status.HTTP_201_CREATED,
         )
-
 
 class EmployeeDetailView(APIView):
     """
@@ -136,6 +173,7 @@ class EmployeeAnalyticsView(APIView):
         super().__init__(**kwargs)
         self.service = EmployeeService()
 
+    @method_decorator(cache_page(60 * 2))
     def get(self, request):
 
         data = {

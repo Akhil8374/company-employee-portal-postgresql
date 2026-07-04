@@ -3,7 +3,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
-
+from django.core.paginator import Paginator
 from api.services import DepartmentService
 from api.serializers import (
     DepartmentSerializer,
@@ -18,27 +18,46 @@ class DepartmentListCreateView(APIView):
     GET  /api/v1/departments/ — List all departments
     POST /api/v1/departments/ — Create a new department
     """
+
     permission_classes = [IsAuthenticated]
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.service = DepartmentService()
 
-    @method_decorator(cache_page(60 * 5))
+    @method_decorator(cache_page(60 * 30))
     def get(self, request):
         departments = self.service.list_departments()
-        serializer = DepartmentSerializer(departments, many=True)
+
+        paginator = Paginator(departments, 10)
+
+        page_number = request.GET.get("page", 1)
+
+        page_obj = paginator.get_page(page_number)
+
+        serializer = DepartmentSerializer(page_obj.object_list, many=True)
         return SuccessResponse(
-            data=serializer.data,
-            message="Departments retrieved successfully",
-        )
+    data={
+        "departments": serializer.data,
+        "pagination": {
+            "current_page": page_obj.number,
+            "total_pages": paginator.num_pages,
+            "total_records": paginator.count,
+            "has_next": page_obj.has_next(),
+            "has_previous": page_obj.has_previous(),
+            "next_page": page_obj.next_page_number() if page_obj.has_next() else None,
+            "previous_page": page_obj.previous_page_number() if page_obj.has_previous() else None,
+        },
+    },
+    message="Departments retrieved successfully",
+)
 
     def post(self, request):
         serializer = DepartmentSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+
         department = serializer.save()
 
-        # Audit log
         create_audit_log(
             user=request.user,
             action="CREATE",
@@ -46,14 +65,13 @@ class DepartmentListCreateView(APIView):
             object_id=department.pk,
             details=serializer.data,
             ip_address=get_client_ip(request),
-        )
-
+    )
+        
         return SuccessResponse(
             data=DepartmentSerializer(department).data,
             message="Department created successfully",
             status_code=status.HTTP_201_CREATED,
-        )
-
+    )
 
 class DepartmentDetailView(APIView):
     """

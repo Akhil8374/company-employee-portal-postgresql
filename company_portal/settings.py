@@ -50,6 +50,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    "company_portal.middleware.performance.PerformanceLoggingMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -278,6 +279,35 @@ LOGGING = {
             "handlers": ["console", "error_file"],
             "level": "WARNING",
             "propagate": True,
+        },
+    },
+}
+# ==========================================================
+# Session Configuration (Performance Module)
+# ==========================================================
+
+SESSION_COOKIE_AGE = 1800          # 30 minutes
+SESSION_SAVE_EVERY_REQUEST = True
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False
+
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SECURE = False      # Change to True in production (HTTPS)
+SESSION_COOKIE_SAMESITE = "Lax"
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "performance_file": {
+            "level": "WARNING",
+            "class": "logging.FileHandler",
+            "filename": "logs/performance.log",
+        },
+    },
+    "loggers": {
+        "performance": {
+            "handlers": ["performance_file"],
+            "level": "WARNING",
+            "propagate": False,
         },
     },
 }

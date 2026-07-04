@@ -23,13 +23,23 @@ class Skill(models.Model):
 
 
 class Employee(models.Model):
-    employee_id = models.CharField(max_length=20, unique=True)
+    employee_id = models.CharField(
+    max_length=20,
+    unique=True,
+    db_index=True,
+)
+    
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)
-    email = models.EmailField(unique=True)
+    email = models.EmailField(
+    unique=True,
+    db_index=True,
+)
     phone = models.CharField(max_length=15)
     salary = models.DecimalField(max_digits=10, decimal_places=2)
-    joining_date = models.DateField()
+    joining_date = models.DateField(
+    db_index=True,
+)
     designation = models.CharField(max_length=100)
 
     department = models.ForeignKey(
@@ -60,7 +70,10 @@ class Employee(models.Model):
 
     objects = EmployeeManager()
 
-    status = models.BooleanField(default=True)
+    status = models.BooleanField(
+    default=True,
+    db_index=True,
+)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

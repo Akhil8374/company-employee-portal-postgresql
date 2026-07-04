@@ -14,7 +14,7 @@ from audit_logs.utils import create_audit_log, get_client_ip
 class LoginView(APIView):
     """
     POST /api/v1/auth/login/
-    JWT Login — returns access + refresh tokens in company standard format.
+    JWT Login with Session Management.
     """
     permission_classes = [AllowAny]
     throttle_classes = [LoginRateThrottle]
@@ -46,10 +46,32 @@ class LoginView(APIView):
                 status_code=status.HTTP_401_UNAUTHORIZED,
             )
 
-        # Generate JWT tokens
+        # =====================================================
+        # Session Management
+        # =====================================================
+
+        # Prevent Session Fixation
+        request.session.cycle_key()
+
+        request.session["user_id"] = user.pk
+        request.session["username"] = user.username
+        request.session["email"] = user.email
+        request.session["role"] = user.role
+
+        # Dashboard preferences
+        request.session["selected_department"] = None
+        request.session["dashboard_theme"] = "default"
+
+        # =====================================================
+        # JWT Tokens
+        # =====================================================
+
         refresh = RefreshToken.for_user(user)
 
-        # Audit log
+        # =====================================================
+        # Audit Log
+        # =====================================================
+
         create_audit_log(
             user=user,
             action="LOGIN",
@@ -69,6 +91,10 @@ class LoginView(APIView):
                     "email": user.email,
                     "role": user.role,
                 },
+                "session": {
+                    "selected_department": request.session["selected_department"],
+                    "dashboard_theme": request.session["dashboard_theme"],
+                },
             },
             message="Login successful",
             status_code=status.HTTP_200_OK,
@@ -78,8 +104,8 @@ class LoginView(APIView):
 class TokenRefreshView(APIView):
     """
     POST /api/v1/auth/refresh/
-    Refresh JWT access token — wraps response in company standard format.
     """
+
     permission_classes = [AllowAny]
 
     def post(self, request):
@@ -94,12 +120,14 @@ class TokenRefreshView(APIView):
 
         try:
             refresh = RefreshToken(refresh_token)
+
             return SuccessResponse(
                 data={
                     "access": str(refresh.access_token),
                 },
                 message="Token refreshed successfully",
             )
+
         except TokenError:
             return ErrorResponse(
                 message="Invalid Token",
@@ -111,8 +139,8 @@ class TokenRefreshView(APIView):
 class LogoutView(APIView):
     """
     POST /api/v1/auth/logout/
-    Blacklists the refresh token to log the user out.
     """
+
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
@@ -125,7 +153,7 @@ class LogoutView(APIView):
             token = RefreshToken(refresh_token)
             token.blacklist()
 
-            # Audit log
+            # Audit Log
             create_audit_log(
                 user=request.user,
                 action="LOGOUT",
@@ -135,10 +163,14 @@ class LogoutView(APIView):
                 ip_address=get_client_ip(request),
             )
 
+            # Clear Session
+            request.session.flush()
+
             return SuccessResponse(
                 message="Logout successful",
                 status_code=status.HTTP_200_OK,
             )
+
         except TokenError:
             return ErrorResponse(
                 message="Invalid Token",
