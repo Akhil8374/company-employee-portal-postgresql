@@ -1,7 +1,24 @@
 from django.contrib import admin
 from django.urls import path, include
 
+from django.conf import settings
+from django.conf.urls.static import static
+
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('', include('employees.urls')),
+    # Django Admin
+    path("admin/", admin.site.urls),
+
+    # Employee Web Pages
+    path("", include("employees.urls")),
+
+    # ── API Versioned Routes ──────────────────────────────────
+    # V1: /api/v1/auth/login/, /api/v1/employees/, etc.
+    # V2: /api/v2/employees/ (expanded fields)
+    path("api/", include("api.urls")),
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(
+        settings.MEDIA_URL,
+        document_root=settings.MEDIA_ROOT
+    )
