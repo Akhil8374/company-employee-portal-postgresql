@@ -1,0 +1,2 @@
+[2026-07-07 11:30:18,537] ERROR django.request log — Internal Server Error: /api/v1/auth/refresh/
+[2026-07-07 11:30:18,538] ERROR django.server log — "POST /api/v1/auth/refresh/ HTTP/1.1" 500 127
