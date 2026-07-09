@@ -1,0 +1,1 @@
+[2026-07-07 15:47:46,404] WARNING application middleware — SLOW RESPONSE: POST /api/v1/auth/change-password/ took 753.44ms (threshold: 500ms)
