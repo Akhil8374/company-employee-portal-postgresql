@@ -33,6 +33,9 @@ from .dashboard_views import (
     DashboardView,
     ReportView,
     ReportDownloadView,
+    StoredReportDownloadView,
+    DashboardExportView,
+    EmployeeQRCodeView,
 )
 
 __all__ = [
@@ -58,8 +61,11 @@ __all__ = [
 
     "EmployeeV2ListCreateView",
     "EmployeeV2DetailView",
-    
+
     "DashboardView",
     "ReportView",
     "ReportDownloadView",
+    "StoredReportDownloadView",
+    "DashboardExportView",
+    "EmployeeQRCodeView",
 ]

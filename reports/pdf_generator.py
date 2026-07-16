@@ -126,3 +126,368 @@ def generate_id_card_pdf(employee):
 
     c.save()
     return filepath
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Report PDF Generators (Module 10)
+# ──────────────────────────────────────────────────────────────────────────────
+
+def generate_employee_report_pdf():
+    """Generate an Employee Report PDF with active/inactive summary."""
+    from employees.models import Employee
+
+    filepath = os.path.join(get_pdf_dir('reports'), f"employee_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf")
+    doc = SimpleDocTemplate(filepath, pagesize=letter)
+    styles = getSampleStyleSheet()
+    elements = []
+
+    elements.append(Paragraph("Employee Report", styles['Title']))
+    elements.append(Spacer(1, 0.25 * inch))
+
+    # Summary
+    total = Employee.objects.count()
+    active = Employee.objects.filter(status=True).count()
+    inactive = Employee.objects.filter(status=False).count()
+
+    summary_data = [
+        ['Metric', 'Count'],
+        ['Total Employees', str(total)],
+        ['Active Employees', str(active)],
+        ['Inactive Employees', str(inactive)],
+    ]
+    t = Table(summary_data, colWidths=[3 * inch, 2 * inch])
+    t.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#2C3E50')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+        ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+        ('FONTSIZE', (0, 0), (-1, -1), 11),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+    ]))
+    elements.append(t)
+    elements.append(Spacer(1, 0.25 * inch))
+
+    # Employee listing
+    elements.append(Paragraph("Employee List", styles['Heading2']))
+    emp_data = [['ID', 'Name', 'Department', 'Designation', 'Status']]
+    for emp in Employee.objects.select_related('department').all()[:100]:
+        emp_data.append([
+            emp.employee_id,
+            f"{emp.first_name} {emp.last_name}",
+            emp.department.name if emp.department else 'N/A',
+            emp.designation,
+            'Active' if emp.status else 'Inactive',
+        ])
+    t2 = Table(emp_data, colWidths=[1 * inch, 1.5 * inch, 1.5 * inch, 1.5 * inch, 1 * inch])
+    t2.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#34495E')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, -1), 9),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+    ]))
+    elements.append(t2)
+
+    elements.append(Spacer(1, 0.25 * inch))
+    elements.append(Paragraph(f"Generated on: {datetime.now().strftime('%Y-%m-%d %H:%M')}", styles['Normal']))
+
+    doc.build(elements)
+    return filepath
+
+
+def generate_department_report_pdf():
+    """Generate a Department Report PDF with employee count and avg salary."""
+    from employees.models import Department
+    from django.db.models import Count, Avg, Q
+
+    filepath = os.path.join(get_pdf_dir('reports'), f"department_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf")
+    doc = SimpleDocTemplate(filepath, pagesize=letter)
+    styles = getSampleStyleSheet()
+    elements = []
+
+    elements.append(Paragraph("Department Report", styles['Title']))
+    elements.append(Spacer(1, 0.25 * inch))
+
+    dept_stats = Department.objects.annotate(
+        employee_count=Count("employee_set"),
+        active_count=Count("employee_set", filter=Q(employee_set__status=True)),
+        inactive_count=Count("employee_set", filter=Q(employee_set__status=False)),
+        avg_salary=Avg("employee_set__salary", filter=Q(employee_set__status=True)),
+    )
+
+    data = [['Department', 'Total', 'Active', 'Inactive', 'Avg Salary']]
+    for dept in dept_stats:
+        data.append([
+            dept.name,
+            str(dept.employee_count),
+            str(dept.active_count),
+            str(dept.inactive_count),
+            f"${float(dept.avg_salary or 0):,.2f}",
+        ])
+
+    t = Table(data, colWidths=[2 * inch, 1 * inch, 1 * inch, 1 * inch, 1.5 * inch])
+    t.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#2C3E50')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, -1), 10),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+    ]))
+    elements.append(t)
+
+    elements.append(Spacer(1, 0.25 * inch))
+    elements.append(Paragraph(f"Generated on: {datetime.now().strftime('%Y-%m-%d %H:%M')}", styles['Normal']))
+
+    doc.build(elements)
+    return filepath
+
+
+def generate_salary_report_pdf():
+    """Generate a Salary Report PDF with monthly payroll and department salary summary."""
+    from employees.models import Employee, Department
+    from django.db.models import Sum, Avg, Q
+
+    filepath = os.path.join(get_pdf_dir('reports'), f"salary_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf")
+    doc = SimpleDocTemplate(filepath, pagesize=letter)
+    styles = getSampleStyleSheet()
+    elements = []
+
+    elements.append(Paragraph("Salary Report", styles['Title']))
+    elements.append(Spacer(1, 0.25 * inch))
+
+    # Overall payroll summary
+    active = Employee.objects.filter(status=True)
+    total_payroll = float(active.aggregate(total=Sum('salary'))['total'] or 0)
+
+    elements.append(Paragraph(f"Monthly Payroll Total: ${total_payroll:,.2f}", styles['Heading2']))
+    elements.append(Spacer(1, 0.15 * inch))
+
+    # Department salary summary
+    elements.append(Paragraph("Department Salary Summary", styles['Heading3']))
+    dept_stats = Department.objects.annotate(
+        headcount=Sum("employee_set__pk", filter=Q(employee_set__status=True), default=0),
+        total_salary=Sum("employee_set__salary", filter=Q(employee_set__status=True)),
+        avg_salary=Avg("employee_set__salary", filter=Q(employee_set__status=True)),
+    )
+
+    data = [['Department', 'Headcount', 'Total Salary', 'Avg Salary']]
+    for dept in dept_stats:
+        from django.db.models import Count as Cnt
+        hc = Employee.objects.filter(department=dept, status=True).count()
+        data.append([
+            dept.name,
+            str(hc),
+            f"${float(dept.total_salary or 0):,.2f}",
+            f"${float(dept.avg_salary or 0):,.2f}",
+        ])
+
+    t = Table(data, colWidths=[2 * inch, 1.2 * inch, 1.8 * inch, 1.5 * inch])
+    t.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#27AE60')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, -1), 10),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+    ]))
+    elements.append(t)
+    elements.append(Spacer(1, 0.15 * inch))
+
+    # Top earners
+    elements.append(Paragraph("Top 10 Highest-Paid Employees", styles['Heading3']))
+    top_data = [['ID', 'Name', 'Department', 'Salary']]
+    for emp in active.select_related('department').order_by('-salary')[:10]:
+        top_data.append([
+            emp.employee_id,
+            f"{emp.first_name} {emp.last_name}",
+            emp.department.name if emp.department else 'N/A',
+            f"${float(emp.salary):,.2f}",
+        ])
+
+    t2 = Table(top_data, colWidths=[1.2 * inch, 2 * inch, 2 * inch, 1.3 * inch])
+    t2.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#2ECC71')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, -1), 9),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+    ]))
+    elements.append(t2)
+
+    elements.append(Spacer(1, 0.25 * inch))
+    elements.append(Paragraph(f"Generated on: {datetime.now().strftime('%Y-%m-%d %H:%M')}", styles['Normal']))
+
+    doc.build(elements)
+    return filepath
+
+
+def generate_attendance_report_pdf():
+    """Generate an Attendance Report PDF with present/absent/leave counts."""
+    from employees.models import Attendance
+    from django.db.models import Count, Q
+
+    filepath = os.path.join(get_pdf_dir('reports'), f"attendance_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf")
+    doc = SimpleDocTemplate(filepath, pagesize=letter)
+    styles = getSampleStyleSheet()
+    elements = []
+
+    elements.append(Paragraph("Attendance Report", styles['Title']))
+    elements.append(Spacer(1, 0.25 * inch))
+
+    # Overall summary
+    total = Attendance.objects.count()
+    present = Attendance.objects.filter(status='PRESENT').count()
+    absent = Attendance.objects.filter(status='ABSENT').count()
+    leave = Attendance.objects.filter(status='LEAVE').count()
+    half_day = Attendance.objects.filter(status='HALF_DAY').count()
+
+    summary_data = [
+        ['Status', 'Count'],
+        ['Total Records', str(total)],
+        ['Present', str(present)],
+        ['Absent', str(absent)],
+        ['Leave', str(leave)],
+        ['Half Day', str(half_day)],
+    ]
+    t = Table(summary_data, colWidths=[3 * inch, 2 * inch])
+    t.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#E74C3C')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, -1), 11),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+    ]))
+    elements.append(t)
+    elements.append(Spacer(1, 0.25 * inch))
+
+    # Recent attendance records
+    elements.append(Paragraph("Recent Attendance Records", styles['Heading2']))
+    att_data = [['Date', 'Employee ID', 'Name', 'Status']]
+    for att in Attendance.objects.select_related('employee').order_by('-date')[:50]:
+        att_data.append([
+            att.date.strftime('%Y-%m-%d') if att.date else '',
+            att.employee.employee_id,
+            f"{att.employee.first_name} {att.employee.last_name}",
+            att.status,
+        ])
+
+    t2 = Table(att_data, colWidths=[1.5 * inch, 1.5 * inch, 2 * inch, 1.5 * inch])
+    t2.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#C0392B')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, -1), 9),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+    ]))
+    elements.append(t2)
+
+    elements.append(Spacer(1, 0.25 * inch))
+    elements.append(Paragraph(f"Generated on: {datetime.now().strftime('%Y-%m-%d %H:%M')}", styles['Normal']))
+
+    doc.build(elements)
+    return filepath
+
+
+def generate_dashboard_report_pdf():
+    """Generate a combined Dashboard Report PDF."""
+    from employees.models import Employee, Department, Attendance
+    from django.db.models import Count, Avg, Sum, Max, Min, Q
+    from django.utils import timezone
+
+    filepath = os.path.join(get_pdf_dir('reports'), f"dashboard_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf")
+    doc = SimpleDocTemplate(filepath, pagesize=letter)
+    styles = getSampleStyleSheet()
+    elements = []
+
+    elements.append(Paragraph("HRMS Dashboard Report", styles['Title']))
+    elements.append(Spacer(1, 0.25 * inch))
+
+    today = timezone.now().date()
+
+    # Employee Summary
+    elements.append(Paragraph("Employee Summary", styles['Heading2']))
+    total = Employee.objects.count()
+    active = Employee.objects.filter(status=True).count()
+    inactive = Employee.objects.filter(status=False).count()
+    dept_count = Department.objects.count()
+
+    summary_data = [
+        ['Metric', 'Value'],
+        ['Total Employees', str(total)],
+        ['Active Employees', str(active)],
+        ['Inactive Employees', str(inactive)],
+        ['Total Departments', str(dept_count)],
+    ]
+    t = Table(summary_data, colWidths=[3 * inch, 2.5 * inch])
+    t.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#2C3E50')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, -1), 11),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+    ]))
+    elements.append(t)
+    elements.append(Spacer(1, 0.2 * inch))
+
+    # Salary Statistics
+    elements.append(Paragraph("Salary Statistics", styles['Heading2']))
+    stats = Employee.objects.filter(status=True).aggregate(
+        total_payroll=Sum('salary'),
+        avg_salary=Avg('salary'),
+        max_salary=Max('salary'),
+        min_salary=Min('salary'),
+    )
+    sal_data = [
+        ['Metric', 'Value'],
+        ['Total Monthly Payroll', f"${float(stats['total_payroll'] or 0):,.2f}"],
+        ['Average Salary', f"${float(stats['avg_salary'] or 0):,.2f}"],
+        ['Highest Salary', f"${float(stats['max_salary'] or 0):,.2f}"],
+        ['Lowest Salary', f"${float(stats['min_salary'] or 0):,.2f}"],
+    ]
+    t2 = Table(sal_data, colWidths=[3 * inch, 2.5 * inch])
+    t2.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#27AE60')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, -1), 11),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+    ]))
+    elements.append(t2)
+    elements.append(Spacer(1, 0.2 * inch))
+
+    # Today's Attendance
+    elements.append(Paragraph(f"Attendance Summary ({today})", styles['Heading2']))
+    att_today = Attendance.objects.filter(date=today)
+    att_data = [
+        ['Status', 'Count'],
+        ['Present', str(att_today.filter(status='PRESENT').count())],
+        ['Absent', str(att_today.filter(status='ABSENT').count())],
+        ['Leave', str(att_today.filter(status='LEAVE').count())],
+        ['Half Day', str(att_today.filter(status='HALF_DAY').count())],
+    ]
+    t3 = Table(att_data, colWidths=[3 * inch, 2.5 * inch])
+    t3.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#E74C3C')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, -1), 11),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+    ]))
+    elements.append(t3)
+
+    elements.append(Spacer(1, 0.25 * inch))
+    elements.append(Paragraph(f"Generated on: {datetime.now().strftime('%Y-%m-%d %H:%M')}", styles['Normal']))
+
+    doc.build(elements)
+    return filepath
+

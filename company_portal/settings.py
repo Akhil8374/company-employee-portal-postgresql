@@ -216,7 +216,6 @@ import os
 # ═══════════════════════════════════════════════════════════════
 LOG_DIR = BASE_DIR / "logs"
 os.makedirs(LOG_DIR, exist_ok=True)
-
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
@@ -241,35 +240,47 @@ LOGGING = {
             "class": "logging.StreamHandler",
             "formatter": "simple",
         },
+
         "application_file": {
             "level": "INFO",
             "class": "logging.FileHandler",
             "filename": LOG_DIR / "application.log",
             "formatter": "verbose",
         },
+
         "error_file": {
             "level": "ERROR",
             "class": "logging.FileHandler",
             "filename": LOG_DIR / "error.log",
             "formatter": "verbose",
         },
+
         "security_file": {
             "level": "WARNING",
             "class": "logging.FileHandler",
             "filename": LOG_DIR / "security.log",
             "formatter": "verbose",
         },
+
         "request_file": {
             "level": "INFO",
             "class": "logging.FileHandler",
             "filename": LOG_DIR / "request.log",
             "formatter": "verbose",
         },
+
         "performance_file": {
             "level": "INFO",
             "class": "logging.FileHandler",
             "filename": LOG_DIR / "performance.log",
             "formatter": "performance",
+        },
+
+        "test_file": {
+            "level": "INFO",
+            "class": "logging.FileHandler",
+            "filename": LOG_DIR / "test.log",
+            "formatter": "verbose",
         },
     },
 
@@ -279,21 +290,31 @@ LOGGING = {
             "level": "INFO",
             "propagate": False,
         },
+
         "security": {
             "handlers": ["console", "security_file"],
             "level": "WARNING",
             "propagate": False,
         },
+
         "request": {
             "handlers": ["request_file"],
             "level": "INFO",
             "propagate": False,
         },
+
         "performance": {
             "handlers": ["console", "performance_file"],
             "level": "INFO",
             "propagate": False,
         },
+
+        "tests": {
+            "handlers": ["console", "test_file"],
+            "level": "INFO",
+            "propagate": False,
+        },
+
         "django": {
             "handlers": ["console", "error_file"],
             "level": "WARNING",

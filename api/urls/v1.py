@@ -27,9 +27,14 @@ from api.views import (
     
     # Dashboard & Reports
     DashboardView,
+    DashboardExportView,
     ReportView,
     ReportDownloadView,
+    StoredReportDownloadView,
+    EmployeeQRCodeView,
 )
+
+from reports.views import ReportListView
 
 app_name = "v1"
 
@@ -85,6 +90,11 @@ urlpatterns = [
         EmployeeIDCardPDFView.as_view(),
         name="employee-id-card",
     ),
+    path(
+        "employees/<int:pk>/qr-code/",
+        EmployeeQRCodeView.as_view(),
+        name="employee-qr-code",
+    ),
 
     # ───────────────── Departments ───────────────────
     path(
@@ -117,13 +127,28 @@ urlpatterns = [
         name="dashboard",
     ),
     path(
+        "dashboard/export/",
+        DashboardExportView.as_view(),
+        name="dashboard-export",
+    ),
+    path(
         "reports/",
         ReportView.as_view(),
         name="reports",
     ),
     path(
+        "reports/list/",
+        ReportListView.as_view(),
+        name="report-list",
+    ),
+    path(
         "reports/<str:pk>/download/",
         ReportDownloadView.as_view(),
         name="report-download",
+    ),
+    path(
+        "reports/stored/<int:pk>/download/",
+        StoredReportDownloadView.as_view(),
+        name="stored-report-download",
     ),
 ]

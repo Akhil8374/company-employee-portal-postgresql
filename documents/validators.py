@@ -10,8 +10,6 @@ def validate_pdf(file):
     ext = os.path.splitext(file.name)[1].lower()
     if ext != '.pdf':
         raise ValidationError("Only PDF files are allowed.")
-from django.core.exceptions import ValidationError
-import os
 
 def validate_image(file):
     """

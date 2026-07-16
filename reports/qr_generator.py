@@ -11,7 +11,10 @@ def generate_employee_qr(employee):
     """
     Generates a QR code for an employee and returns the file path.
     """
-    verification_url = f"{settings.ALLOWED_HOSTS[0] if settings.ALLOWED_HOSTS else 'http://localhost:8000'}/api/v1/employees/{employee.id}/"
+    base_url = settings.ALLOWED_HOSTS[0] if settings.ALLOWED_HOSTS else "http://localhost:8000"
+    if not base_url.startswith("http"):
+        base_url = f"http://{base_url}"
+    verification_url = f"{base_url}/api/v1/employees/{employee.id}/"
     qr_data = (
         f"Employee ID: {employee.employee_id}\n"
         f"Name: {employee.first_name} {employee.last_name}\n"

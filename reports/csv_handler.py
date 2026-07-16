@@ -105,3 +105,92 @@ def import_employees_csv(file_obj):
         "failed": failed,
         "errors": errors
     }
+
+
+def export_department_csv():
+    """Export department summary to CSV."""
+    from django.db.models import Count, Avg, Q
+
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    filename = f"departments_{timestamp}.csv"
+    filepath = os.path.join(get_reports_dir(), filename)
+
+    with open(filepath, mode='w', newline='', encoding='utf-8') as file:
+        writer = csv.writer(file)
+        writer.writerow(['Department', 'Employee Count', 'Active', 'Inactive', 'Average Salary'])
+
+        dept_stats = Department.objects.annotate(
+            employee_count=Count("employee_set"),
+            active_count=Count("employee_set", filter=Q(employee_set__status=True)),
+            inactive_count=Count("employee_set", filter=Q(employee_set__status=False)),
+            avg_salary=Avg("employee_set__salary", filter=Q(employee_set__status=True)),
+        )
+        for dept in dept_stats:
+            writer.writerow([
+                dept.name,
+                dept.employee_count,
+                dept.active_count,
+                dept.inactive_count,
+                round(float(dept.avg_salary or 0), 2),
+            ])
+    return filepath
+
+
+def export_salary_csv():
+    """Export salary report to CSV."""
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    filename = f"salary_report_{timestamp}.csv"
+    filepath = os.path.join(get_reports_dir(), filename)
+
+    with open(filepath, mode='w', newline='', encoding='utf-8') as file:
+        writer = csv.writer(file)
+        writer.writerow(['Employee ID', 'Name', 'Department', 'Designation', 'Salary'])
+
+        employees = Employee.objects.select_related('department').filter(status=True).order_by('-salary')
+        for emp in employees:
+            writer.writerow([
+                emp.employee_id,
+                f"{emp.first_name} {emp.last_name}",
+                emp.department.name if emp.department else '',
+                emp.designation,
+                float(emp.salary),
+            ])
+    return filepath
+
+
+def export_attendance_csv():
+    """Export attendance records to CSV."""
+    from employees.models import Attendance
+
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    filename = f"attendance_{timestamp}.csv"
+    filepath = os.path.join(get_reports_dir(), filename)
+
+    with open(filepath, mode='w', newline='', encoding='utf-8') as file:
+        writer = csv.writer(file)
+        writer.writerow(['Date', 'Employee ID', 'Name', 'Status'])
+
+        attendances = Attendance.objects.select_related('employee').all().order_by('-date')
+        for att in attendances:
+            writer.writerow([
+                att.date.strftime('%Y-%m-%d') if att.date else '',
+                att.employee.employee_id,
+                f"{att.employee.first_name} {att.employee.last_name}",
+                att.status,
+            ])
+    return filepath
+
+
+def export_csv(export_type='employee'):
+    """
+    Dispatcher function: export any report type to CSV.
+    Matches the interface of `generate_employees_excel(export_type)`.
+    """
+    dispatch = {
+        'employee': export_employees_csv,
+        'department': export_department_csv,
+        'salary': export_salary_csv,
+        'attendance': export_attendance_csv,
+    }
+    handler = dispatch.get(export_type, export_employees_csv)
+    return handler()
